@@ -8,7 +8,7 @@ const settings = document.getElementById("settings");
 const settingsForm = document.getElementById("settings-form");
 const difficultySelect = document.getElementById("difficulty");
 
-let words = ["a", "b", "c"];
+let words = [];
 
 async function fetchWords(wordLength) {
   const res = await fetch(
@@ -21,8 +21,6 @@ async function fetchWords(wordLength) {
   words = word;
 }
 
-fetchWords(6);
-
 // 単語を初期化
 let randomWord;
 
@@ -31,6 +29,18 @@ let score = 0;
 
 // タイムを初期化
 let time = 10;
+
+// ローカルストレージの値または'medium'値を難易度に設定
+let difficulty =
+  localStorage.getItem("difficulty") !== null
+    ? localStorage.getItem("difficulty")
+    : "medium";
+
+// 選択した難易度をセット
+difficultySelect.value =
+  localStorage.getItem("difficulty") !== null
+    ? localStorage.getItem("difficulty")
+    : "medium";
 
 // ゲームの開始時に'input'要素にフォーカス
 text.focus();
@@ -78,9 +88,15 @@ function gameOver() {
   endgameEl.style.display = "flex";
 }
 
-addWordToDOM();
+// ゲームを開始
+async function startGame() {
+  await fetchWords(6);
+
+  addWordToDOM();
+}
 
 // イベントリスナー
+// タイピング
 text.addEventListener("input", (e) => {
   const insertedText = e.target.value;
 
@@ -90,8 +106,27 @@ text.addEventListener("input", (e) => {
 
     e.target.value = "";
 
-    time += 5;
+    if (difficulty === "hard") {
+      time += 2;
+    } else if (difficulty === "medium") {
+      time += 3;
+    } else {
+      time += 5;
+    }
 
     updateTime();
   }
 });
+
+// 設定ボタンをクリック
+settingsBtn.addEventListener("click", () => {
+  settings.classList.toggle("hide");
+});
+
+// 設定を選択
+settingsForm.addEventListener("change", (e) => {
+  difficulty = e.target.value;
+  localStorage.setItem("difficulty", difficulty);
+});
+
+startGame();
